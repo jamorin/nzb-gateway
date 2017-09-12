@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: nzbgateway
+  mvc:
+    favicon:
+      enabled: false
+  jackson:
+    serialization:
+      indent-output: true
+
+gateway:
+  base-url: http://192.168.86.2
+  auth0-roles-namespace: https://nzbgateway/roles
+
+zuul:
+  host:
+    connect-timeout-millis: 5000
+    socket-timeout-millis: 60000
+  routes:
+    nzbget:
+      path: /nzbget/**
+      url: '${gateway.base-url}:6789/nzbget'
+    sonarr:
+      path: /sonarr/**
+      url: '${gateway.base-url}:8989/sonarr'
+    radarr:
+      path: /radarr/**
+      url: '${gateway.base-url}:7878/radarr'
+    xmlrpc:
+      path: /xmlrpc
+      url: '${gateway.base-url}:6789/xmlrpc'
+
+management:
+  context-path: /application
+
+security:
+  oauth2:
+    client:
+      client-id: ${SECURITY_OAUTH2_CLIENT_ID:acme}
+      client-secret: ${SECURITY_OAUTH2_CLIENT_SECRET}
+      access-token-uri: https://jeremyamorin.auth0.com/oauth/token
+      user-authorization-uri: https://jeremyamorin.auth0.com/authorize
+      scope:
+      - email
+    resource:
+      user-info-uri: https://jeremyamorin.auth0.com/userinfo
+logging:
+  file: target/application.log
