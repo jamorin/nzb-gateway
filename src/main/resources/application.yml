@@ -7,7 +7,6 @@ spring:
   jackson:
     serialization:
       indent-output: true
-
 gateway:
   base-url: http://192.168.86.2
   auth0-roles-namespace: https://nzbgateway/roles
@@ -46,3 +45,6 @@ security:
       user-info-uri: https://jeremyamorin.auth0.com/userinfo
 logging:
   file: target/application.log
+hystrix:
+  metrics:
+    enabled: false
