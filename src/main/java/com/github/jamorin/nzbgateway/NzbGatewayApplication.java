@@ -1,5 +1,6 @@
 package com.github.jamorin.nzbgateway;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -25,8 +26,9 @@ public class NzbGatewayApplication {
     }
 
     @Bean
-    public FilterRegistrationBean forwardedHeaderFilter() {
+    public FilterRegistrationBean forwardedHeaderFilter(@Value("${gateway.use-forwarded-filter}") boolean useFilter) {
         FilterRegistrationBean bean = new FilterRegistrationBean(new ForwardedHeaderFilter());
+        bean.setEnabled(useFilter);
         bean.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER - 20);
         return bean;
     }

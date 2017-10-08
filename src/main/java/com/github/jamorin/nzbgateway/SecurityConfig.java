@@ -1,16 +1,13 @@
 package com.github.jamorin.nzbgateway;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.ManagementServerProperties;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.PrincipalExtractor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,20 +20,8 @@ import java.util.Set;
 
 @Configuration
 @EnableOAuth2Sso
-@RequiredArgsConstructor
 @Order(ManagementServerProperties.ACCESS_OVERRIDE_ORDER)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-    private final SecurityProperties securityProperties;
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        SecurityProperties.User user = securityProperties.getUser();
-        auth.inMemoryAuthentication()
-            .withUser(user.getName())
-            .password(user.getPassword())
-            .roles(user.getRole().toArray(new String[0]));
-    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

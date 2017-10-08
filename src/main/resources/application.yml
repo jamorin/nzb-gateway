@@ -8,8 +8,10 @@ spring:
     serialization:
       indent-output: true
 gateway:
+  use-forwarded-filter: true
   base-url: http://192.168.86.2
   auth0-roles-namespace: https://nzbgateway/roles
+
 
 zuul:
   host:
@@ -48,3 +50,6 @@ logging:
 hystrix:
   metrics:
     enabled: false
+server:
+  session:
+    timeout: 7200
