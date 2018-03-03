@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:9-jdk-alpine
 
 RUN mkdir /build
 ADD . /build

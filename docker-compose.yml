@@ -4,6 +4,7 @@ services:
     build: .
     image: jamorin/nzb-gateway
     environment:
+    - "JAVA_OPTS=-Djava.security.egd=file:/dev/./urandom"
     - SECURITY_OAUTH2_CLIENT_ID=$SECURITY_OAUTH2_CLIENT_ID
     - SECURITY_OAUTH2_CLIENT_SECRET=$SECURITY_OAUTH2_CLIENT_SECRET
     - SECURITY_USER_PASSWORD=password
