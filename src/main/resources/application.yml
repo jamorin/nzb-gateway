@@ -1,55 +1,93 @@
 spring:
   application:
-    name: nzbgateway
+    name: 'nzbgateway'
   mvc:
     favicon:
       enabled: false
-  jackson:
-    serialization:
-      indent-output: true
+  security:
+    user:
+      roles:
+      - 'USER'
 gateway:
-  use-forwarded-filter: true
-  base-url: http://192.168.86.2
-  auth0-roles-namespace: https://nzbgateway/roles
-
+  base-url: 'http://192.168.86.2'
+  auth0-roles-namespace: 'https://nzbgateway/roles'
 
 zuul:
-  host:
-    connect-timeout-millis: 5000
-    socket-timeout-millis: 60000
+  # Sonarr/Radarr's websockets fail longPolling without this
+  force-original-query-string-encoding: true
   routes:
     nzbget:
-      path: /nzbget/**
-      url: '${gateway.base-url}:6789/nzbget'
-    sonarr:
-      path: /sonarr/**
-      url: '${gateway.base-url}:8989/sonarr'
-    radarr:
-      path: /radarr/**
-      url: '${gateway.base-url}:7878/radarr'
+      serviceId: nzbget-service
+      path: '/nzbget/**'
+      strip-prefix: false
     xmlrpc:
-      path: /xmlrpc
-      url: '${gateway.base-url}:6789/xmlrpc'
+      # mapping for dognzb.cr as they do not support base paths.
+      serviceId: nzbget-service
+      path: '/xmlrpc'
+      strip-prefix: false
+    sonarr:
+      serviceId: sonarr-service
+      path: '/sonarr/**'
+      strip-prefix: false
+    radarr:
+      serviceId: radarr-service
+      path: '/radarr/**'
+      strip-prefix: false
+    tautulli:
+      serviceId: tautulli-service
+      path: '/tautulli/**'
+      strip-prefix: false
+nzbget-service:
+  ribbon:
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+    listOfServers: '${gateway.base-url}:6789'
+    ConnectTimeout: 4_000
+sonarr-service:
+  ribbon:
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+    listOfServers: '${gateway.base-url}:8989'
+    # For long polling
+    ConnectTimeout: 4_000
+    ReadTimeout: 90_000
+radarr-service:
+  ribbon:
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+    listOfServers: '${gateway.base-url}:7878'
+    # For long polling
+    ConnectTimeout: 4_000
+    ReadTimeout: 90_000
+tautulli-service:
+  ribbon:
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+    listOfServers: '${gateway.base-url}:8181'
+    ConnectTimeout: 4_000
+    ReadTimeout: 90_000
 
 management:
-  context-path: /application
+  endpoint:
+    health:
+      show-details: when_authorized
+  endpoints:
+    web:
+      exposure:
+        include: '*'
 
 security:
   oauth2:
     client:
-      client-id: ${SECURITY_OAUTH2_CLIENT_ID:acme}
-      client-secret: ${SECURITY_OAUTH2_CLIENT_SECRET}
-      access-token-uri: https://jeremyamorin.auth0.com/oauth/token
-      user-authorization-uri: https://jeremyamorin.auth0.com/authorize
+      client-id: '${SECURITY_OAUTH2_CLIENT_ID:acme}'
+      client-secret: '${SECURITY_OAUTH2_CLIENT_SECRET:acmesecret}'
+      access-token-uri: 'https://jeremyamorin.auth0.com/oauth/token'
+      user-authorization-uri: 'https://jeremyamorin.auth0.com/authorize'
       scope:
-      - email
+      - 'openid'
+      - 'email'
     resource:
-      user-info-uri: https://jeremyamorin.auth0.com/userinfo
+      user-info-uri: 'https://jeremyamorin.auth0.com/userinfo'
+      prefer-token-info: false
 logging:
-  file: target/application.log
-hystrix:
-  metrics:
-    enabled: false
+  file: 'target/application.log'
 server:
-  session:
-    timeout: 7200
+  servlet:
+    session:
+      timeout: 240m

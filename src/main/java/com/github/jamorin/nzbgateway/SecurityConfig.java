@@ -1,17 +1,20 @@
 package com.github.jamorin.nzbgateway;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.ManagementServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.PrincipalExtractor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,17 +23,25 @@ import java.util.Set;
 
 @Configuration
 @EnableOAuth2Sso
-@Order(ManagementServerProperties.ACCESS_OVERRIDE_ORDER)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/**")
+            .addFilterBefore(new EmptyBasicAuthenticationSuppressingFilter(), BasicAuthenticationFilter.class)
             .csrf().disable()
             .authorizeRequests()
-            .antMatchers("/application/health", "/sonarr/api/**", "/radarr/api/**").permitAll()
-            .antMatchers("/ping", "/nzbget/**", "/xmlrpc", "/api/**").hasRole("USER")
-            .anyRequest().hasRole("ACTUATOR")
+            .antMatchers("/actuator/health").permitAll()
+            .requestMatchers(new AndRequestMatcher(
+                new RequestHeaderRequestMatcher("X-Api-Key"),
+                new OrRequestMatcher(
+                    new AntPathRequestMatcher("/sonarr/api/**"),
+                    new AntPathRequestMatcher("/radarr/api/**")
+                )
+            )).permitAll()
+            .antMatchers("/actuator/hystrix.stream").hasIpAddress("127.0.0.1")
+            .antMatchers("/actuator/**").hasRole("ACTUATOR")
+            .anyRequest().hasRole("USER")
             .and()
             .httpBasic().realmName("NzbGateway")
             .and()
