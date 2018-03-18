@@ -4,7 +4,7 @@ RUN mkdir /build
 ADD . /build
 WORKDIR /build
 RUN chmod +x mvnw
-RUN ./mvnw clean install
+RUN ./mvnw clean install -B -V
 RUN mv target/*.jar /app.jar
 WORKDIR /
 RUN rm -r /build
